@@ -387,7 +387,13 @@ async def _main(args, c, q, reconnect_bt_addr=None):
 
         while 1:
             await asyncio.sleep(0.2)
+    q.put('unlock') # unlock console
+    print('hi :3')
 
+    while 1:
+        cmd = q.get() # wait command
+
+        await test_button(controller_state, cmd)
 
 '''
 NINTENDO SWITCH
