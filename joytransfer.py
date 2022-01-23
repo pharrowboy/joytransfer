@@ -249,95 +249,86 @@ async def _main2(args):
         # Create memory containing default controller stick calibration
     spi_flash = FlashMemory()
 
-    # Get controller name to emulate from arguments
-    controller = Controller.from_arg(args.controller)
+  
 
-    with utils.get_output(path=args.log, default=None) as capture_file:
-        factory = controller_protocol_factory(controller, spi_flash=spi_flash)
-        ctl_psm, itr_psm = 17, 19
-        transport, protocol = await create_hid_server(factory, reconnect_bt_addr=args.reconnect_bt_addr,
-                                                      ctl_psm=ctl_psm,
-                                                      itr_psm=itr_psm, capture_file=capture_file,
-                                                      device_id=args.device_id)
+    controller_state = protocol.get_controller_state()
 
-        controller_state = protocol.get_controller_state()
-
-        await relais(controller_state)
+    await relais(controller_state)
         # Create command line interface and add some extra commands
         cli = ControllerCLI(controller_state)
 
         # Wrap the script so we can pass the controller state. The doc string will be printed when calling 'help'
-        async def _run_test_controller_buttons():
+    async def _run_test_controller_buttons():
             """
             test_buttons - Navigates to the "Test Controller Buttons" menu and presses all buttons.
             """
-            await test_controller_buttons(controller_state)
+        await test_controller_buttons(controller_state)
 
         # add the script from above
-        cli.add_command('test_buttons', _run_test_controller_buttons)
+    cli.add_command('test_buttons', _run_test_controller_buttons)
 
         # init_relais command
-        async def _run_init_relais():
+     async def _run_init_relais():
             """
             init_relais - init the relais and configure button layout
             """
-            init_relais()
+        init_relais()
 
         # add the script from above
-        cli.add_command('init_relais', _run_init_relais)
+     cli.add_command('init_relais', _run_init_relais)
 
         # relais command
-        async def _run_relais():
+     async def _run_relais():
             """
             relais - run the relais
             """
-            await relais(controller_state)
+        await relais(controller_state)
 
         # add the script from above
-        cli.add_command('relais', _run_relais)
+     cli.add_command('relais', _run_relais)
 
         # Mash a button command
-        async def call_mash_button(*args):
+     async def call_mash_button(*args):
             """
             mash - Mash a specified button at a set interval
             Usage:
                 mash <button> <interval>
             """
-            if not len(args) == 2:
-                raise ValueError('"mash_button" command requires a button and interval as arguments!')
+        if not len(args) == 2:
+            raise ValueError('"mash_button" command requires a button and interval as arguments!')
 
-            button, interval = args
-            await mash_button(controller_state, button, interval)
+        button, interval = args
+        await mash_button(controller_state, button, interval)
 
         # add the script from above
-        cli.add_command('mash', call_mash_button)
+     cli.add_command('mash', call_mash_button)
 
         # Create amiibo command
-        async def amiibo(*args):
+     async def amiibo(*args):
             """
             amiibo - Sets nfc content
             Usage:
                 amiibo <file_name>          Set controller state NFC content to file
                 amiibo remove               Remove NFC content from controller state
             """
-            if controller_state.get_controller() == Controller.JOYCON_L:
-                raise ValueError('NFC content cannot be set for JOYCON_L')
-            elif not args:
-                raise ValueError('"amiibo" command requires file path to an nfc dump as argument!')
-            elif args[0] == 'remove':
-                controller_state.set_nfc(None)
-                print('Removed nfc content.')
-            else:
-                await set_amiibo(controller_state, args[0])
+         if controller_state.get_controller() == Controller.JOYCON_L:
+             raise ValueError('NFC content cannot be set for JOYCON_L')
+         elif not args:
+             raise ValueError('"amiibo" command requires file path to an nfc dump as argument!')
+         elif args[0] == 'remove':
+             controller_state.set_nfc(None)
+             print('Removed nfc content.')
+         else:
+             await set_amiibo(controller_state, args[0])
 
         # add the script from above
-        cli.add_command('amiibo', amiibo)
+     cli.add_command('amiibo', amiibo)
 
-        try:
-            await cli.run()
-        finally:
-            logger.info('Stopping communication...')
-            await transport.close()
+     try:
+         await cli.run()
+     finally:
+         logger.info('Stopping communication...')
+         await transport.close()
 
 async def _main(args, c, q, reconnect_bt_addr=None):
 
