@@ -244,91 +244,15 @@ async def mash_button(controller_state, button, interval):
     await user_input
 
 
-async def _main2(args):
+async def _main2(args, controller_state):
 
         # Create memory containing default controller stick calibration
     spi_flash = FlashMemory()
 
   
 
-    controller_state = protocol.get_controller_state()
+    
 
-    await relais(controller_state)
-        # Create command line interface and add some extra commands
-        cli = ControllerCLI(controller_state)
-
-        # Wrap the script so we can pass the controller state. The doc string will be printed when calling 'help'
-    async def _run_test_controller_buttons():
-            """
-            test_buttons - Navigates to the "Test Controller Buttons" menu and presses all buttons.
-            """
-        await test_controller_buttons(controller_state)
-
-        # add the script from above
-    cli.add_command('test_buttons', _run_test_controller_buttons)
-
-        # init_relais command
-     async def _run_init_relais():
-            """
-            init_relais - init the relais and configure button layout
-            """
-        init_relais()
-
-        # add the script from above
-     cli.add_command('init_relais', _run_init_relais)
-
-        # relais command
-     async def _run_relais():
-            """
-            relais - run the relais
-            """
-        await relais(controller_state)
-
-        # add the script from above
-     cli.add_command('relais', _run_relais)
-
-        # Mash a button command
-     async def call_mash_button(*args):
-            """
-            mash - Mash a specified button at a set interval
-            Usage:
-                mash <button> <interval>
-            """
-        if not len(args) == 2:
-            raise ValueError('"mash_button" command requires a button and interval as arguments!')
-
-        button, interval = args
-        await mash_button(controller_state, button, interval)
-
-        # add the script from above
-     cli.add_command('mash', call_mash_button)
-
-        # Create amiibo command
-     async def amiibo(*args):
-            """
-            amiibo - Sets nfc content
-            Usage:
-                amiibo <file_name>          Set controller state NFC content to file
-                amiibo remove               Remove NFC content from controller state
-            """
-         if controller_state.get_controller() == Controller.JOYCON_L:
-             raise ValueError('NFC content cannot be set for JOYCON_L')
-         elif not args:
-             raise ValueError('"amiibo" command requires file path to an nfc dump as argument!')
-         elif args[0] == 'remove':
-             controller_state.set_nfc(None)
-             print('Removed nfc content.')
-         else:
-             await set_amiibo(controller_state, args[0])
-
-        # add the script from above
-     cli.add_command('amiibo', amiibo)
-
-     try:
-         await cli.run()
-     finally:
-         logger.info('Stopping communication...')
-         await transport.close()
 
 async def _main(args, c, q, reconnect_bt_addr=None):
 
@@ -374,6 +298,64 @@ async def _main(args, c, q, reconnect_bt_addr=None):
 
         while 1:
             await asyncio.sleep(0.2)
+
+    await relais(controller_state)
+        # Create command line interface and add some extra commands
+    cli = ControllerCLI(controller_state)
+
+        # Wrap the script so we can pass the controller state. The doc string will be printed when calling 'help'
+    async def _run_test_controller_buttons():
+            """
+            test_buttons - Navigates to the "Test Controller Buttons" menu and presses all buttons.
+            """
+            await test_controller_buttons(controller_state)
+
+        # add the script from above
+    cli.add_command('test_buttons', _run_test_controller_buttons)
+
+        # init_relais command
+    async def _run_init_relais():
+            """
+            init_relais - init the relais and configure button layout
+            """
+            init_relais()
+
+        # add the script from above
+    cli.add_command('init_relais', _run_init_relais)
+
+        # relais command
+    async def _run_relais():
+            """
+            relais - run the relais
+            """
+            await relais(controller_state)
+
+        # add the script from above
+    cli.add_command('relais', _run_relais)
+
+        # Mash a button command
+    async def call_mash_button(*args):
+            """
+            mash - Mash a specified button at a set interval
+            Usage:
+                mash <button> <interval>
+            """
+            if not len(args) == 2:
+                raise ValueError('"mash_button" command requires a button and interval as arguments!')
+
+            button, interval = args
+            await mash_button(controller_state, button, interval)
+
+        # add the script from above
+    cli.add_command('mash', call_mash_button)
+
+        # Create amiibo command
+   
+    try:
+        await cli.run()
+    finally:
+        logger.info('Stopping communication...')
+        await transport.close()
     q.put('unlock') # unlock console
     print('hi :3')
 
@@ -459,9 +441,9 @@ if __name__ == '__main__':
         else:
             queue.get() # lock console
 
-        while p.is_alive():
+     
             
-            loop.run_until_complete(_main2(args))
+           
        
 
             
