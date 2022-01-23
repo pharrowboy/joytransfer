@@ -441,6 +441,7 @@ if __name__ == '__main__':
         raise PermissionError('Script must be run as root!')
 
     parser = argparse.ArgumentParser()
+    parser.add_argument('controller', help='JOYCON_R, JOYCON_L or PRO_CONTROLLER')
     parser.add_argument('--auto', dest='auto', action='store_true')
     parser.add_argument('-r', '--reconnect_bt_addr', type=str, default=None,
                         help='The Switch console Bluetooth address (or "auto" for automatic detection), for reconnecting as an already paired controller.')
