@@ -245,13 +245,9 @@ async def mash_button(controller_state, button, interval):
 
 
 async def _main2(args):
-    # parse the spi flash
-    if args.spi_flash:
-        with open(args.spi_flash, 'rb') as spi_flash_file:
-            spi_flash = FlashMemory(spi_flash_file.read())
-    else:
+
         # Create memory containing default controller stick calibration
-        spi_flash = FlashMemory()
+    spi_flash = FlashMemory()
 
     # Get controller name to emulate from arguments
     controller = Controller.from_arg(args.controller)
@@ -472,12 +468,12 @@ if __name__ == '__main__':
             queue.get() # lock console
 
         while p.is_alive():
-            loop = asyncio.get_event_loop()
+            
             loop.run_until_complete(_main2(args))
        
 
             
-            time.sleep(0.2) # not needed
+            
 
         # wait reconnection
         time.sleep(2) # important 2 or more
